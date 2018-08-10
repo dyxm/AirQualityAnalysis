@@ -1,6 +1,6 @@
 # Created by Yuexiong Ding
 # Date: 2018/8/9
-# Description: 
+# Description: use lasso model to analyze the main factors
 
 import numpy as np
 import pandas as pd
