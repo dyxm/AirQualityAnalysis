@@ -1071,9 +1071,47 @@ geo_fips_list = ['00000', '01000', '01001', '01003', '01005', '01007', '01009', 
 
 
 # 从全部处理过的数据中提取2016年的数据
-eco_total_data = pd.read_csv('../DataSet/ProcessedData/Economy/eco_total_2001-2016.csv', low_memory=False, dtype=str)
-eco_2016_data = eco_total_data[eco_total_data['Year'] == '2016']
-# eco_2016_data['State County Code'] = eco_2016_data['GeoFIPS']
-# eco_2016_data.pop('GeoFIPS')
-eco_2016_data.to_csv('../DataSet/ProcessedData/Economy/eco_total_data_2016.csv', index=False)
-print(eco_2016_data)
+# eco_total_data = pd.read_csv('../DataSet/ProcessedData/Economy/eco_total_2001-2016.csv', low_memory=False, dtype=str)
+# eco_2016_data = eco_total_data[eco_total_data['Year'] == '2016']
+# # eco_2016_data['State County Code'] = eco_2016_data['GeoFIPS']
+# # eco_2016_data.pop('GeoFIPS')
+# eco_2016_data.to_csv('../DataSet/ProcessedData/Economy/eco_total_data_2016.csv', index=False)
+# print(eco_2016_data)
+
+# 从经济数据中挑选有用的feature
+columns = ["State County Code", "County Name", "Region", "Year", "Personal income (thousands of dollars)",
+           "Population (persons) 2/", "Per capita personal income (dollars)", "Farm earnings",
+           "Forestry, fishing, and related activities", "Mining, quarrying, and oil and gas extraction",
+           "Construction", "Manufacturing", "Wholesale trade", "Retail trade",
+           "Information", "Finance and insurance", "Real estate and rental and leasing",
+           "Professional, scientific, and technical services",
+           "Administrative and support and waste management and remediation services",
+           "Arts, entertainment, and recreation",
+           "Accommodation and food services", "Other services (except government and government enterprises)"]
+eco_data = pd.read_csv('../DataSet/ProcessedData/Economy/2016.csv')
+eco_data = eco_data.fillna(0.01)
+for c in eco_data.columns:
+    if c not in columns:
+        eco_data.pop(c)
+eco_data["Farm earnings Forestry Fishing Mining Quarrying Oil Gas extraction"] = eco_data.pop(
+    'Farm earnings') + eco_data.pop('Forestry, fishing, and related activities') + eco_data.pop(
+    'Mining, quarrying, and oil and gas extraction')
+eco_data["Finance Insurance Real estate Rental Leasing"] = eco_data.pop('Finance and insurance') + eco_data.pop(
+    'Real estate and rental and leasing')
+eco_data["Arts Entertainment Recreation Accommodation Food services"] = eco_data.pop(
+    'Arts, entertainment, and recreation') + eco_data.pop('Accommodation and food services')
+eco_data.astype('str')
+state_county_code = np.array(eco_data.pop('State County Code')).astype('str')
+eco_data['State County Code'] = ['0' + x if len(x) < 5 else x for x in state_county_code]
+print(eco_data.columns)
+# eco_data.to_csv('../DataSet/ProcessedData/FinalData/eco_2016.csv', index=False)
+for c in eco_data.columns:
+    j = 0
+    for i in eco_data[c] == 0:
+        if i:
+            j += 1
+    percent = (j / len(eco_data[c]))
+    # if percent > 0.3:
+        # print(c)
+    print(c, j, percent * 100)
+

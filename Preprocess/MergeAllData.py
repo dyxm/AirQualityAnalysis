@@ -80,6 +80,8 @@ aqi_geo_pcp_temp_wind_data = pd.merge(aqi_geo_pcp_temp_data, wind_data, on='Stat
 aqi_geo_pcp_temp_wind_eco_data = pd.merge(aqi_geo_pcp_temp_wind_data, eco_data, on='State County Code', how='left')
 aqi_geo_pcp_temp_wind_eco_transp_data = pd.merge(aqi_geo_pcp_temp_wind_eco_data, pop_transp_data,
                                                  on='State County Code', how='left')
-aqi_geo_pcp_temp_wind_eco_transp_data.to_csv('../DataSet/ProcessedData/TrainData/train_2016.csv', index=False)
-print(aqi_geo_pcp_temp_wind_eco_data)
+aqi_geo_pcp_temp_wind_eco_transp_data['State Code'] = [x[0: 2] for x in aqi_geo_pcp_temp_wind_eco_transp_data['State County Code']]
+aqi_geo_pcp_temp_wind_eco_transp_data['County Code'] = [x[2:] for x in aqi_geo_pcp_temp_wind_eco_transp_data['State County Code']]
+aqi_geo_pcp_temp_wind_eco_transp_data.to_csv('../DataSet/ProcessedData/TrainData/new_train_2016.csv', index=False)
+print(aqi_geo_pcp_temp_wind_eco_transp_data)
 print(len(aqi_data))

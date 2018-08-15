@@ -6,10 +6,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
-from sklearn.ensemble import RandomForestRegressor
 from sklearn import metrics
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LassoCV
 
-raw_data = pd.read_csv('../DataSet/ProcessedData/TrainData/train_2016.csv')
+
+
 col = ['ALAND', 'AWATER', 'PCP', 'TEMP', 'WIND',
        'Region', 'Personal income (thousands of dollars)', 'Population (persons) 2/',
        'Per capita personal income (dollars)', 'Earnings by place of work',
@@ -65,31 +67,27 @@ col = ['ALAND', 'AWATER', 'PCP', 'TEMP', 'WIND',
        'Car truck or van-Drove alone', 'Car truck or van-Carpooled', 'Public transportation (excluding taxicab)',
        'Walked', 'Bicycle', 'Taxicab motorcycle or other means', 'Worked at home', 'No vehicle available',
        '1 vehicle available', '2 vehicles available', '3 or more vehicles available']
-# print(list(raw_data.columns))
-raw_data.pop('State County Code')
-# raw_data.pop('INTPTLAT')
-# raw_data.pop('INTPTLONG')
-raw_data.pop('County Name')
-raw_data.pop('Internet publishing and broadcasting 8/')
-
-# X = raw_data.fillna(raw_data.mean())
-X = raw_data.fillna(method='pad')
-X = raw_data.fillna(raw_data.mean())
+df_data = pd.read_csv('../DataSet/ProcessedData/TrainData/train_fill_with_state_mean_2016.csv')
+df_data.pop('State County Code')
+df_data.pop('Region')
+df_data.pop('INTPTLAT')
+df_data.pop('INTPTLONG')
+df_data.pop('County Name')
+y = preprocessing.scale(df_data.pop('AQI'))
+X = df_data.fillna(0)
 X = preprocessing.scale(X)
-y = raw_data.pop('AQI')
-rfr = RandomForestRegressor(n_estimators=1000, n_jobs=-1)
-rfr.fit(X, np.array(y))
-y_pred = rfr.predict(X)
-mean_squared_error = metrics.mean_squared_error(y, y_pred)
-r2_score = metrics.r2_score(y, y_pred)
-print(mean_squared_error)
-print(r2_score)
-plt.scatter(range(len(y)), y, c='b')
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+# X_train, X_test, y_train, y_test = over_sampling(df_data, split=0.7, over_num=10)
+# columns = X_train.columns
+columns = df_data.columns
+lassocv = LassoCV()
+lassocv.fit(preprocessing.scale(X_train), y_train)
+print('alpha: ', lassocv.alpha_)
+print(sorted(zip(np.fabs(lassocv.coef_), columns), reverse=True))
+y_pred = lassocv.predict(preprocessing.scale(X_test))
+print(metrics.mean_squared_error(y_test, y_pred))
+print(metrics.r2_score(y_test, y_pred))
+plt.scatter(range(len(y_test)), y_test, c='b')
 plt.scatter(range(len(y_pred)), y_pred, c='r')
 plt.show()
-# print(raw_data)
-# raw_data.to_csv('../DataSet/ProcessedData/TrainData/train_fill_by_pad_2016.csv')
-# plt.scatter(raw_data['WIND'], raw_data['AQI'], c='r')
-# plt.scatter(raw_data['TEMP'], raw_data['AQI'], c='b')
-# plt.scatter(raw_data['AWATER'] / raw_data['Population (persons) 2/'], raw_data['AQI'], c='y')
-# plt.show()
